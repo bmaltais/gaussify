@@ -8,6 +8,7 @@ from typing import List
 
 
 def run_tool(stage: str, cmd: List[str]) -> None:
+    typer.echo(f"  $ {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, capture_output=False, text=True)
     except FileNotFoundError:

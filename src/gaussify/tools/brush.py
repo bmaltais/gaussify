@@ -61,14 +61,11 @@ def install_brush(tools_dir: Path) -> None:
     typer.echo("  brush: done.")
 
 
-def run_brush(tools_dir: Path, sparse_dir: Path, splat_path: Path, gpu: str) -> None:
+def run_brush(tools_dir: Path, output_dir: Path, gpu: str) -> None:
     from gaussify.runner import run_tool
     brush = _brush_bin(tools_dir)
-    run_tool("brush", [
-        str(brush), "train",
-        "--source", str(sparse_dir),
-        "--export-path", str(splat_path),
-    ])
+    # Open Brush GUI with the COLMAP project loaded — user starts training interactively
+    run_tool("brush", [str(brush), "--with-viewer", str(output_dir)])
 
 
 def _brush_bin(tools_dir: Path) -> Path:

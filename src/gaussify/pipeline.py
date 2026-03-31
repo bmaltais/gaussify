@@ -28,16 +28,15 @@ def run_pipeline(
     _check_tools_installed()
 
     output.mkdir(parents=True, exist_ok=True)
-    frames_dir = output / "frames"
+    frames_dir = output / "images"
     sparse_dir = output / "sparse"
-    splat_path = output / "scene.splat"
-
     _run_stage("frame extraction", _extract_all, inputs, frames_dir, frames)
     _run_stage("colmap", run_colmap, TOOLS_DIR, frames_dir, sparse_dir)
-    _run_stage("global_mapper", run_global_mapper, TOOLS_DIR, frames_dir, sparse_dir)
-    _run_stage("brush", run_brush, TOOLS_DIR, sparse_dir, splat_path, resolved_gpu)
+    _run_stage("colmap global_mapper", run_global_mapper, TOOLS_DIR, frames_dir, sparse_dir)
 
-    typer.echo(f"\nDone. Output: {splat_path}")
+    typer.echo(f"\nSfM complete. Opening Brush GUI with scene: {output}")
+    typer.echo("  Start training in the GUI. Your .ply will be saved where you choose.")
+    _run_stage("brush", run_brush, TOOLS_DIR, output, resolved_gpu)
 
 
 def _extract_all(inputs: list[Path], frames_dir: Path, total_frames: int) -> None:

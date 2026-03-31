@@ -87,6 +87,7 @@ def extract_frames(input: Path, frames_dir: Path, count: int, prefix: str = "") 
 
     if duration and duration > 0:
         # Probe native fps to get total frame count and avoid over-sampling
+        ffprobe = _ffprobe_bin()
         fps_probe = subprocess.run(
             [str(ffprobe), "-v", "quiet", "-select_streams", "v:0",
              "-show_entries", "stream=r_frame_rate", "-of", "csv=p=0", str(input)],

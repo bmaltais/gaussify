@@ -80,6 +80,12 @@ def run_global_mapper(tools_dir: Path, frames_dir: Path, sparse_dir: Path) -> No
     from gaussify.runner import run_tool
     colmap = _colmap_bin(tools_dir)
     db = sparse_dir / "database.db"
+    # Estimate focal lengths from matched image pairs before global_mapper runs.
+    # Without this, PNG frames (no EXIF) give global_mapper poor focal length priors.
+    run_tool("colmap view_graph_calibrator", [
+        str(colmap), "view_graph_calibrator",
+        "--database_path", str(db),
+    ])
     run_tool("colmap global_mapper", [
         str(colmap), "global_mapper",
         "--database_path", str(db),
