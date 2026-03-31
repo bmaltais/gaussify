@@ -1,0 +1,25 @@
+[project]
+name = "gaussify"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "bmaltais", email = "bernard@ducourier.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.24.1",
+]
+
+[project.scripts]
+gaussify = "gaussify:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-mock>=3.15.1",
+]
