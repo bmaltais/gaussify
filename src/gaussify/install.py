@@ -5,16 +5,20 @@ import typer
 from gaussify.tools.ffmpeg import install_ffmpeg
 from gaussify.tools.colmap import install_colmap
 from gaussify.tools.brush import install_brush
+from gaussify.tools.densify import install_densify
 from gaussify.toolpaths import TOOLS_DIR, GITIGNORE_PATH
 
 
-def install_tools() -> None:
+def install_tools(with_densify: bool = False) -> None:
     _ensure_gitignore()
     typer.echo("Installing tools into .tools/ ...")
 
     install_ffmpeg(TOOLS_DIR)
     install_colmap(TOOLS_DIR)
     install_brush(TOOLS_DIR)
+
+    if with_densify:
+        install_densify(TOOLS_DIR)
 
     typer.echo("All tools installed. Run `gaussify run <video>` to get started.")
 

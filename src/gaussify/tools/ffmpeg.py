@@ -111,7 +111,7 @@ def extract_frames(input: Path, frames_dir: Path, count: int, prefix: str = "") 
     cmd = [str(_ffmpeg_bin()), "-i", str(input)]
     if vf:
         cmd += ["-vf", vf, "-vsync", "vfr"]
-    cmd += ["-q:v", "2", str(frames_dir / f"{prefix}%05d.png")]
+    cmd += ["-q:v", "2", str(frames_dir / f"{prefix}%05d.jpg")]
 
     run_tool("frame extraction", cmd)
 

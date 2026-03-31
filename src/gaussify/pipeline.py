@@ -8,6 +8,7 @@ from gaussify.gpu import detect_gpu
 from gaussify.toolpaths import TOOLS_DIR
 from gaussify.tools.ffmpeg import extract_frames, probe_duration
 from gaussify.tools.colmap import run_colmap, run_global_mapper
+from gaussify.tools.densify import run_densify, DEFAULT_QUALITY
 from gaussify.tools.brush import run_brush
 
 
@@ -16,6 +17,8 @@ def run_pipeline(
     output: Path,
     frames: int,
     gpu: Optional[str],
+    densify: bool = False,
+    quality: str = DEFAULT_QUALITY,
 ) -> None:
     for path in inputs:
         if not path.exists():
@@ -33,6 +36,10 @@ def run_pipeline(
     _run_stage("frame extraction", _extract_all, inputs, frames_dir, frames)
     _run_stage("colmap", run_colmap, TOOLS_DIR, frames_dir, sparse_dir)
     _run_stage("colmap global_mapper", run_global_mapper, TOOLS_DIR, frames_dir, sparse_dir)
+
+    if densify:
+        typer.echo(f"\n[densify] quality={quality}")
+        _run_stage("densify", run_densify, TOOLS_DIR, output, quality)
 
     typer.echo(f"\nSfM complete. Opening Brush GUI with scene: {output}")
     typer.echo("  Start training in the GUI. Your .ply will be saved where you choose.")
