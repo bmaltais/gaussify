@@ -69,7 +69,8 @@ def run_glomap(tools_dir: Path, sparse_dir: Path) -> None:
 
 def _glomap_bin(tools_dir: Path) -> Path:
     exe = "glomap.exe" if platform.system() == "Windows" else "glomap"
-    return tools_dir / "glomap" / "bin" / exe
+    # GLOMAP zip extracts flat (no bin/ subdir unlike COLMAP)
+    return tools_dir / "glomap" / exe
 
 
 def _detect_cuda() -> bool:
