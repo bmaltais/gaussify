@@ -15,13 +15,13 @@ def install():
 
 @app.command()
 def run(
-    input: Path = typer.Argument(..., help="Input video file"),
+    inputs: list[Path] = typer.Argument(..., help="One or more input video files"),
     output: Path = typer.Option(Path("./output"), "--output", "-o", help="Output directory"),
-    frames: int = typer.Option(200, "--frames", "-f", help="Number of frames to extract"),
+    frames: int = typer.Option(200, "--frames", "-f", help="Total frames to extract across all videos"),
     gpu: Optional[str] = typer.Option(None, "--gpu", help="GPU backend: cuda, rocm, or cpu"),
 ):
-    """Run the full pipeline: video → frames → SfM → 3DGS → .splat"""
-    run_pipeline(input=input, output=output, frames=frames, gpu=gpu)
+    """Run the full pipeline: video(s) → frames → SfM → 3DGS → .splat"""
+    run_pipeline(inputs=inputs, output=output, frames=frames, gpu=gpu)
 
 
 def main():

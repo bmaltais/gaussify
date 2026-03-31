@@ -64,19 +64,26 @@ def install_ffmpeg(tools_dir: Path) -> None:
     typer.echo("  ffmpeg: done.")
 
 
-def extract_frames(input: Path, frames_dir: Path, count: int) -> None:
+def probe_duration(input: Path) -> float | None:
+    """Return video duration in seconds, or None if it cannot be determined."""
+    import subprocess
+    result = subprocess.run(
+        [str(_ffprobe_bin()), "-v", "quiet", "-show_entries", "format=duration",
+         "-of", "csv=p=0", str(input)],
+        capture_output=True, text=True,
+    )
+    try:
+        return float(result.stdout.strip()) if result.returncode == 0 else None
+    except ValueError:
+        return None
+
+
+def extract_frames(input: Path, frames_dir: Path, count: int, prefix: str = "") -> None:
     import subprocess
     from gaussify.runner import run_tool
     frames_dir.mkdir(parents=True, exist_ok=True)
 
-    # Probe duration so we can spread frames evenly across the full video
-    ffprobe = _ffprobe_bin()
-    probe = subprocess.run(
-        [str(ffprobe), "-v", "quiet", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(input)],
-        capture_output=True, text=True,
-    )
-    duration = float(probe.stdout.strip()) if probe.returncode == 0 else None
+    duration = probe_duration(input)
 
     if duration and duration > 0:
         # Probe native fps to get total frame count and avoid over-sampling
@@ -103,7 +110,7 @@ def extract_frames(input: Path, frames_dir: Path, count: int) -> None:
     cmd = [str(_ffmpeg_bin()), "-i", str(input)]
     if vf:
         cmd += ["-vf", vf, "-vsync", "vfr"]
-    cmd += ["-q:v", "2", str(frames_dir / "%05d.png")]
+    cmd += ["-q:v", "2", str(frames_dir / f"{prefix}%05d.png")]
 
     run_tool("frame extraction", cmd)
 
