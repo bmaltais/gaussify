@@ -65,24 +65,71 @@ def install_ffmpeg(tools_dir: Path) -> None:
 
 
 def extract_frames(input: Path, frames_dir: Path, count: int) -> None:
+    import subprocess
     from gaussify.runner import run_tool
     frames_dir.mkdir(parents=True, exist_ok=True)
-    run_tool(
-        "frame extraction",
-        [
-            str(_ffmpeg_bin()),
-            "-i", str(input),
-            "-vframes", str(count),
-            "-q:v", "2",
-            str(frames_dir / "%05d.png"),
-        ],
+
+    # Probe duration so we can spread frames evenly across the full video
+    ffprobe = _ffprobe_bin()
+    probe = subprocess.run(
+        [str(ffprobe), "-v", "quiet", "-show_entries", "format=duration",
+         "-of", "csv=p=0", str(input)],
+        capture_output=True, text=True,
     )
+    duration = float(probe.stdout.strip()) if probe.returncode == 0 else None
+
+    if duration and duration > 0:
+        # Probe native fps to get total frame count and avoid over-sampling
+        fps_probe = subprocess.run(
+            [str(ffprobe), "-v", "quiet", "-select_streams", "v:0",
+             "-show_entries", "stream=r_frame_rate", "-of", "csv=p=0", str(input)],
+            capture_output=True, text=True,
+        )
+        native_fps = _parse_fps(fps_probe.stdout.strip()) if fps_probe.returncode == 0 else None
+        total_frames = int(native_fps * duration) if native_fps else None
+
+        if total_frames and count >= total_frames:
+            typer.echo(f"  Video has ~{total_frames} frames total — extracting all of them...")
+            vf = None  # extract every frame, no fps filter
+        else:
+            fps = count / duration
+            typer.echo(f"  Extracting {count} frames evenly over {duration:.1f}s (~{fps:.2f} fps)...")
+            vf = f"fps={fps}"
+    else:
+        # Fallback: first N frames
+        typer.echo(f"  Could not probe duration — extracting first {count} frames...")
+        vf = None
+
+    cmd = [str(_ffmpeg_bin()), "-i", str(input)]
+    if vf:
+        cmd += ["-vf", vf, "-vsync", "vfr"]
+    cmd += ["-q:v", "2", str(frames_dir / "%05d.png")]
+
+    run_tool("frame extraction", cmd)
+
+
+def _parse_fps(rate_str: str) -> float | None:
+    """Parse ffprobe r_frame_rate output like '30000/1001' or '30'."""
+    try:
+        if "/" in rate_str:
+            num, den = rate_str.split("/")
+            return float(num) / float(den)
+        return float(rate_str)
+    except (ValueError, ZeroDivisionError):
+        return None
 
 
 def _ffmpeg_bin() -> Path:
+    return _find_bin("ffmpeg")
+
+
+def _ffprobe_bin() -> Path:
+    return _find_bin("ffprobe")
+
+
+def _find_bin(name: str) -> Path:
     from gaussify.toolpaths import TOOLS_DIR
-    exe = "ffmpeg.exe" if platform.system() == "Windows" else "ffmpeg"
-    # BtbN zip extracts bin/ subdir on Windows, bin/ on Linux
+    exe = f"{name}.exe" if platform.system() == "Windows" else name
     candidates = [
         TOOLS_DIR / "ffmpeg" / "bin" / exe,
         TOOLS_DIR / "ffmpeg" / exe,

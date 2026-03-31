@@ -7,8 +7,7 @@ from typing import Optional
 from gaussify.gpu import detect_gpu
 from gaussify.toolpaths import TOOLS_DIR
 from gaussify.tools.ffmpeg import extract_frames
-from gaussify.tools.colmap import run_colmap
-from gaussify.tools.glomap import run_glomap
+from gaussify.tools.colmap import run_colmap, run_global_mapper
 from gaussify.tools.brush import run_brush
 
 
@@ -34,7 +33,7 @@ def run_pipeline(
 
     _run_stage("frame extraction", extract_frames, input, frames_dir, frames)
     _run_stage("colmap", run_colmap, TOOLS_DIR, frames_dir, sparse_dir)
-    _run_stage("glomap", run_glomap, TOOLS_DIR, sparse_dir)
+    _run_stage("global_mapper", run_global_mapper, TOOLS_DIR, frames_dir, sparse_dir)
     _run_stage("brush", run_brush, TOOLS_DIR, sparse_dir, splat_path, resolved_gpu)
 
     typer.echo(f"\nDone. Output: {splat_path}")

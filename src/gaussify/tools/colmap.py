@@ -15,6 +15,7 @@ from gaussify.downloader import (
 
 
 REPO = "colmap/colmap"
+# COLMAP 4.0+ ships global_mapper (GLOMAP) built-in — no separate GLOMAP binary needed.
 
 
 def install_colmap(tools_dir: Path) -> None:
@@ -71,6 +72,19 @@ def run_colmap(tools_dir: Path, frames_dir: Path, sparse_dir: Path) -> None:
     run_tool("colmap exhaustive_matcher", [
         str(colmap), "exhaustive_matcher",
         "--database_path", str(db),
+    ])
+
+
+def run_global_mapper(tools_dir: Path, frames_dir: Path, sparse_dir: Path) -> None:
+    """GLOMAP-equivalent SfM via COLMAP 4.0+ built-in global_mapper."""
+    from gaussify.runner import run_tool
+    colmap = _colmap_bin(tools_dir)
+    db = sparse_dir / "database.db"
+    run_tool("colmap global_mapper", [
+        str(colmap), "global_mapper",
+        "--database_path", str(db),
+        "--image_path", str(frames_dir),
+        "--output_path", str(sparse_dir),
     ])
 
 

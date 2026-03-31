@@ -19,6 +19,13 @@ def get_latest_release(repo: str) -> dict:
         return json.loads(r.read())
 
 
+def get_release_by_tag(repo: str, tag: str) -> dict:
+    url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
+    req = urllib.request.Request(url, headers={"User-Agent": "gaussify-installer"})
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+
+
 def pick_asset(assets: list, *substrings: str) -> dict | None:
     for asset in assets:
         name = asset["name"]
